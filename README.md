@@ -11,7 +11,6 @@ Welcome to the Formula 1 Database Project! This repository contains the SQL scri
 - [Introduction](#introduction)
 - [Database Schema](#database-schema)
 - [Entities and Relationships](#entities-and-relationships)
-- [How to Use](#how-to-use)
 
 ## Introduction
 
@@ -85,41 +84,6 @@ The database schema is designed with a focus on clarity, efficiency, and normali
 - **CambioNeumaticos**: Tracks tire changes during events.
 - **RegistroVelocidad**: Tracks speed records.
 - **Monoplazas**: Manages information about single-seater cars.
-
-## How to Use
-
-1. **Clone the Repository**:
-   ```sh
-   git clone https://github.com/yourusername/formula1-database.git
-   cd formula1-database
-   ```
-
-2. **Set Up the Database**:
-   - Ensure you have PostgreSQL installed.
-   - Run the provided SQL scripts to create the database and tables:
-     ```sh
-     psql -U yourusername -f create_tables.sql
-     ```
-
-3. **Populate the Database**:
-   - You can use the insert scripts or your own data to populate the tables:
-     ```sh
-     psql -U yourusername -f insert_data.sql
-     ```
-
-4. **Query the Database**:
-   - Start querying the database using your favorite SQL client or command line tool.
-
-## Contributing
-
-Contributions are welcome! If you'd like to contribute, please follow these steps:
-
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/your-feature`).
-3. Commit your changes (`git commit -am 'Add new feature'`).
-4. Push to the branch (`git push origin feature/your-feature`).
-5. Create a new Pull Request.
-
 
 ---
 
