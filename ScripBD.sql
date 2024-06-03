@@ -303,5 +303,3 @@ CREATE TABLE Monoplazas (
     FOREIGN KEY (idEquipo) REFERENCES Equipos(idEquipo)
 );
 
-
-
