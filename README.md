@@ -58,7 +58,7 @@ The database schema is designed with a focus on clarity, efficiency, and normali
 35. **Soporte (Support Events)**
 
 ## Entities and Relationships
-
+![Map](./Entidades)
 
 ### Key Entities
 
