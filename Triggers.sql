@@ -125,4 +125,29 @@ BEFORE INSERT OR UPDATE ON Circuitos
 FOR EACH ROW
 EXECUTE FUNCTION checkLongitudCircuito();
 
+CREATE OR REPLACE FUNCTION check_event_association()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Verificar si el evento ya está en GranPremio
+    IF EXISTS (SELECT 1 FROM GranPremio WHERE idGranPremio = NEW.idSoporte) THEN
+        RAISE EXCEPTION 'El evento ya está asociado a GranPremio';
+    END IF;
+    
+    -- Verificar si el evento ya está en Benefico
+    IF EXISTS (SELECT 1 FROM Benefico WHERE idBenefico = NEW.idSoporte) THEN
+        RAISE EXCEPTION 'El evento ya está asociado a Benefico';
+    END IF;
+    
+    -- Verificar si el evento ya está en Soporte
+    IF EXISTS (SELECT 1 FROM Soporte WHERE idSoporte = NEW.idSoporte) THEN
+        RAISE EXCEPTION 'El evento ya está asociado a Soporte';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
+-- Creación del trigger
+CREATE TRIGGER trigger_check_event_association
+BEFORE INSERT ON Soporte
+FOR EACH ROW
+EXECUTE FUNCTION check_event_association();

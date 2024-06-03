@@ -49,16 +49,16 @@ ORDER BY precioPromedio DESC;
 --4)¿Cuál es el equipo que ha tenido la mayor cantidad de cambios de neumáticos en 
 --todas las actividades de un evento específico y cuál es el total de cambios de 
 --neumáticos realizados por ese equipo?
-CREATE OR REPLACE FUNCTION ObtenerEquipoConMasCambiosNeumaticos(idEvento INT)
+CREATE OR REPLACE FUNCTION ObtenerEquipoConMasCambiosNeumaticos(idDelEvento INT)
 RETURNS TABLE (Equipo VARCHAR, TotalCambios INT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT e.nombre AS Equipo, COUNT(*) AS TotalCambios
+    SELECT e.nombre AS Equipo, COUNT(*)::integer AS TotalCambios
     FROM CambioNeumaticos cn
     JOIN Equipos e ON cn.idEquipo = e.idEquipo
-    WHERE cn.idEvento = idEvento
+    WHERE cn.idEvento = idDelEvento
     GROUP BY e.nombre
     ORDER BY TotalCambios DESC
     LIMIT 1;
@@ -85,6 +85,9 @@ JOIN
 JOIN 
     Patrocinadores pat ON p.idPatrocinador = pat.idPatrocinador;
 
+SELECT * FROM PatrociniosContinuos;
+
+
 --6)cuál es el país con el mayor número de pilotos que han participado en carreras de Fórmula 1
 
 CREATE OR REPLACE FUNCTION PaisConMasPilotos()
@@ -107,10 +110,12 @@ BEGIN
 END;
 $$;
 
+SELECT PaisConMasPilotos();
+
 
 --7) Cuál es el equipo que ha logrado el mayor número de podios en las carreras de Fórmula 1
 CREATE OR REPLACE VIEW PodiosPorEquipo AS
-SELECT e.nombre AS equipo, COUNT(*) AS num_podios
+SELECT e.nombre AS equipo, COUNT(*)::integer AS num_podios
 FROM ResultadosCarrera rc
 JOIN Equipos e ON rc.idEquipo = e.idEquipo
 WHERE rc.posicionFinal IN (1, 2, 3)
@@ -182,8 +187,8 @@ FROM VistaCambiosNeumatico
 --11)Encontrar el promedio de la temperatura en eventos realizados en
 --circuitos con capacidad mayor a 100,000 personas:
 SELECT AVG(cl.temperatura) AS PromedioTemperatura
-FROM Climas cl
-JOIN Actividades act ON cl.idClima = act.idClima
+FROM RegistrosClimaticos cl
+JOIN Actividades act ON cl.idRegistroClimatico = act.idRegistroClimatico
 JOIN Eventos e ON act.idEvento = e.idEvento
 JOIN Circuitos c ON e.idCircuito = c.idCircuito
 WHERE c.capacidad > 100000;
@@ -281,8 +286,7 @@ INNER JOIN TipoActividades ON Actividades.idTipoActividad = TipoActividades.idTi
 INNER JOIN Eventos ON Actividades.idEvento = Eventos.idEvento;
 
 SELECT *
-FROM VistaTipoActividadTodosGP
-FROM Actividades
+FROM VistaTipoActividadTodosGP, Actividades
 INNER JOIN TipoActividades ON Actividades.idTipoActividad = TipoActividades.idTipoActividad
 WHERE idEvento = (SELECT idEvento FROM Eventos WHERE nombre = 'Gran Premio de Gran Bretaña');
 
@@ -294,55 +298,102 @@ SELECT
     p.nombre AS Piloto,
     rv.velocidadMaxima
 FROM 
-    RegistroVelocidad rv
+    RegistrosVelocidad rv
     INNER JOIN Actividades a ON rv.idActividad = a.idActividad
     INNER JOIN Eventos e ON a.idEvento = e.idEvento
-    INNER JOIN Pilotos p ON rv.idPiloto = p.idPiloto;
+    INNER JOIN Personas p ON rv.idPiloto = p.idPersona;
 
---16) ¿Qué equipo ha acumulado más puntos en todas las carreras y cuál es su puntaje total?
 
-CREATE VIEW PuntosPorEquipo AS
+--16) ¿Cuáles son los pilotos que han participado en carreras, su equipo, el evento en el que participaron, 
+--el circuito, y el resultado final en términos de posición, tiempo de vuelta rápida y vueltas completadas, 
+--incluyendo la condición climática en la que se desarrolló la carrera?
+
+CREATE VIEW DetallesCarrerasPilotos AS
 SELECT 
-    e.nombre AS Equipo,
-    SUM(pc.puntosAsociados) AS PuntosTotales
+    p.nombre AS piloto,
+    e.nombre AS equipo,
+    ev.nombre AS evento,
+    c.nombre AS circuito,
+    r.posicionFinal,
+    r.tiempoVueltaRapida,
+    r.vueltasCompletadas,
+    cc.nombre AS condicionClimatica
 FROM 
-    ResultadosCarrera rc
-    INNER JOIN Equipos e ON rc.idEquipo = e.idEquipo
-    INNER JOIN PuntosCarrera pc ON rc.posicionFinal = pc.posicionFinal
-GROUP BY 
-    e.nombre
-ORDER BY 
-    PuntosTotales DESC;
+    ResultadosCarrera r
+JOIN 
+    Carreras ca ON r.idCarrera = ca.idCarrera
+JOIN 
+    Actividades a ON ca.idCarrera = a.idActividad
+JOIN 
+    Eventos ev ON a.idEvento = ev.idEvento
+JOIN 
+    Circuitos c ON ev.idCircuito = c.idCircuito
+JOIN 
+    Ciudades ciu ON c.idCiudad = ciu.idCiudad
+JOIN 
+    Paises pa ON ciu.idPais = pa.idPais
+JOIN 
+    Pilotos pi ON r.idPiloto = pi.idPiloto
+JOIN 
+    Personas p ON pi.idPiloto = p.idPersona
+JOIN 
+    Equipos e ON r.idEquipo = e.idEquipo
+LEFT JOIN 
+    RegistrosClimaticos rc ON a.idRegistroClimatico = rc.idRegistroClimatico
+LEFT JOIN 
+    CondicionesClimaticas cc ON rc.idCondicion = cc.idCondicion;
 
+SELECT * FROM DetallesCarrerasPilotos;
 
 --17)¿Cuál es la relación entre el tiempo de la vuelta más 
 --rápida y el número de vueltas completadas por cada piloto en cada carrera?
 
-CREATE VIEW RelacionTiempoVueltas AS
+CREATE VIEW VistaResultadosCarrera AS
 SELECT 
-    p.nombre AS Piloto,
-    c.nombre AS Carrera,
-    rc.vueltasCompletadas,
-    rc.tiempoVueltaRapida
+    r.idPiloto,
+    r.idCarrera,
+    r.tiempoVueltaRapida,
+    r.vueltasCompletadas
+FROM 
+    ResultadosCarrera r;
+
+SELECT 
+    idPiloto,
+    idCarrera,
+    tiempoVueltaRapida,
+    vueltasCompletadas
+FROM 
+    VistaResultadosCarrera;
+
+
+--18) ¿Cuál es el promedio de tiempo de la vuelta más rápida y el número total de vueltas completadas por cada piloto en cada carrera, agrupado por el tipo de circuito?
+CREATE OR REPLACE VIEW VistaDetallesCarrera AS
+SELECT 
+    rc.idCarrera,
+    rc.idPiloto,
+    c.idCircuito,
+    tc.nombre AS tipoCircuito,
+    rc.tiempoVueltaRapida,
+    rc.vueltasCompletadas
 FROM 
     ResultadosCarrera rc
-    INNER JOIN Pilotos p ON rc.idPiloto = p.idPiloto
-    INNER JOIN Carreras c ON rc.idCarrera = c.idCarrera;
+INNER JOIN 
+    Carreras cr ON rc.idCarrera = cr.idCarrera
+INNER JOIN 
+    Actividades a ON cr.idCarrera = a.idActividad
+INNER JOIN 
+    Circuitos c ON a.idEvento = c.idCircuito
+INNER JOIN 
+    TipoCircuitos tc ON c.idTipoCircuito = tc.idTipoCircuito;
 
---18) ¿Cuál es el promedio de puntos obtenidos por los pilotos en cada carrera?
-
-CREATE FUNCTION PromedioPuntosPorCarrera(idCarrera INT) RETURNS FLOAT AS $$
-DECLARE
-    promedio FLOAT;
-BEGIN
-    SELECT AVG(pc.puntosAsociados)
-    INTO promedio
-    FROM ResultadosCarrera rc
-    INNER JOIN PuntosCarrera pc ON rc.posicionFinal = pc.posicionFinal
-    WHERE rc.idCarrera = idCarrera;
-    RETURN promedio;
-END;
-$$ LANGUAGE plpgsql;
+SELECT 
+    tipoCircuito,
+    AVG(tiempoVueltaRapida) AS promedioTiempoVueltaRapida,
+    SUM(vueltasCompletadas) AS totalVueltasCompletadas
+FROM 
+    VistaDetallesCarrera
+GROUP BY 
+    tipoCircuito;
 
 --19) ¿Cuáles pilotos han participado en más de 5 eventos y cuál es su promedio de puntos por evento?
 
