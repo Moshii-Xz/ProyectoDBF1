@@ -574,8 +574,41 @@ INSERT INTO Patrocinadores (nombre, tipoPatrocinio) VALUES
 
 
 INSERT INTO Patrocinios (idPatrocinador, idEvento, idEquipo, montoPatrocinio, fechaInicio, fechaFinal) VALUES
-    (1, 101, NULL, 50000.00, '2024-06-01', '2024-12-31'),
-    (2, 101, 1, 75000.00, '2024-06-01', '2024-12-31'),
-    (3, 101, 2, 100000.00, '2024-06-01', '2024-12-31'),
-    (4, 101, 3, 90000.00, '2024-06-01', '2024-12-31'),
-    (5, 101, NULL, 60000.00, '2024-06-01', '2024-12-31');
+    (1, 1, NULL, 50000.00, '2024-06-01', '2024-12-31'),
+    (2, 1, 1, 75000.00, '2024-06-01', '2024-12-31'),
+    (3, 1, 2, 100000.00, '2024-06-01', '2024-12-31'),
+    (4, 2, 3, 90000.00, '2024-06-01', '2024-12-31'),
+    (5, 3, NULL, 60000.00, '2024-06-01', '2024-12-31');
+
+INSERT INTO RegistrosVelocidad (idActividad, velocidadMaxima, idPiloto) VALUES
+(1, '220 km/h', 1),
+(2, '210 km/h', 2),
+(3, '230 km/h', 3),
+(1, '225 km/h', 2),
+(2, '215 km/h', 3),
+(3, '235 km/h', 1);
+
+INSERT INTO GranPremio (idGranPremio) VALUES
+(1),
+(2),
+(3),
+(4),
+(5),
+(6),
+(7),
+(8),
+(9),
+(10);
+
+-- Datos de ejemplo para la tabla Monoplazas
+INSERT INTO Monoplazas (numeroChasis, modelo, temporada, idEquipo) VALUES
+('RB16B-01', 'RB16B', '2021', 1),
+('RB16B-02', 'RB16B', '2021', 1),
+('W12-01', 'W12', '2021', 2),
+('W12-02', 'W12', '2021', 2),
+('SF21-01', 'SF21', '2021', 3),
+('SF21-02', 'SF21', '2021', 3),
+('MCL35M-01', 'MCL35M', '2021', 4),
+('MCL35M-02', 'MCL35M', '2021', 4),
+('A521-01', 'A521', '2021', 5),
+('A521-02', 'A521', '2021', 5);
